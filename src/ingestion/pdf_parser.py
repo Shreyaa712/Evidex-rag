@@ -4,6 +4,16 @@ import pymupdf
 
 
 def extract_pdf(pdf_path):
+    """
+    Extract text from a PDF page by page.
+
+    Args:
+        pdf_path: Path to the research paper PDF.
+
+    Returns:
+        A dictionary containing the PDF name,
+        page count, and extracted page-level text.
+    """
 
     pdf_path = Path(pdf_path)
 
@@ -11,59 +21,31 @@ def extract_pdf(pdf_path):
     if not pdf_path.exists():
         raise FileNotFoundError(f"PDF not found: {pdf_path}")
 
-    # Open the PDF
-    document = pymupdf.open(pdf_path)
+    if not pdf_path.is_file():
+        raise ValueError(f"Not a valid file: {pdf_path}")
 
-    extracted_data = {
-        "file_name": pdf_path.name,
-        "page_count": len(document),
-        "metadata": document.metadata,
-        "pages": []
-    }
+    if pdf_path.suffix.lower() != ".pdf":
+        raise ValueError("The supplied file must be a PDF.")
 
-    # Extract text page by page
-    for page_number, page in enumerate(document, start=1):
+    # Open the PDF and extract page-level text
+    with pymupdf.open(pdf_path) as document:
 
-        page_text = page.get_text("text")
+        pages = []
 
-        extracted_data["pages"].append({
-            "page_number": page_number,
-            "text": page_text
-        })
+        for page_number, page in enumerate(document, start=1):
 
-    document.close()
+            page_text = page.get_text("text")
+
+            pages.append({
+                "page_number": page_number,
+                "text": page_text
+            })
+
+        # Return structured extraction results
+        extracted_data = {
+            "file_name": pdf_path.name,
+            "page_count": len(document),
+            "pages": pages
+        }
 
     return extracted_data
-
-
-if __name__ == "__main__":
-
-    # Locate the EVIDEX project folder
-    project_root = Path(__file__).resolve().parents[2]
-
-    pdf_path = (
-        project_root
-        / "data"
-        / "raw"
-        / "01_rag_lewis_2020.pdf"
-    )
-
-    # Extract PDF information
-    result = extract_pdf(pdf_path)
-
-    # Display results
-    print("\n========== EVIDEX PDF EXTRACTION ==========")
-
-    print("\n1. PDF NAME")
-    print(result["file_name"])
-
-    print("\n2. TOTAL PAGES")
-    print(result["page_count"])
-
-    print("\n3. PDF METADATA")
-    print(result["metadata"])
-
-    print("\n4. FIRST PAGE TEXT (FIRST 500 CHARACTERS)")
-    print(result["pages"][0]["text"][:500])
-
-    print("\n========== EXTRACTION COMPLETED ==========")
