@@ -13,7 +13,7 @@ def create_chunks(
     for page in pages:
         text = page["text"]
         start = 0
-        chunk_number = 1
+        chunk_index = 0
 
         while start < len(text):
 
@@ -32,16 +32,16 @@ def create_chunks(
                 chunks.append({
                     "chunk_id": (
                         f"{page['paper_id']}_"
-                        f"p{page['page_number']}_c{chunk_number}"
+                        f"p{page['page_number']}_c{chunk_index + 1}"
                     ),
                     "paper_id": page["paper_id"],
                     "paper_name": page["paper_name"],
                     "page_number": page["page_number"],
-                    "chunk_number": chunk_number,
-                    "text": chunk_text
+                    "chunk_index": chunk_index,
+                    "chunk_text": chunk_text
                 })
 
-                chunk_number += 1
+                chunk_index += 1
 
             if end >= len(text):
                 break
