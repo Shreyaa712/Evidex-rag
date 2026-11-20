@@ -2,51 +2,37 @@
 import re
 
 
-def clean_text(text):
-    """
-    Clean extracted research paper text.
+def clean_text(text: str) -> str:
 
-    Preserves meaningful paragraph boundaries while
-    removing unnecessary whitespace and formatting noise.
-    """
+    # Remove unwanted control characters
+    text = re.sub(
+        r"[\x00-\x08\x0b\x0c\x0e-\x1f]",
+        "",
+        text
+    )
 
-    if not isinstance(text, str):
-        raise TypeError("Input text must be a string.")
+    # Standardize line endings
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
 
-    # Normalize Windows and old-style line endings
-    text = text.replace("\r\n", "\n")
-    text = text.replace("\r", "\n")
-
-    # Remove null characters
-    text = text.replace("\x00", "")
-
-    # Remove unnecessary spaces and tabs
+    # Normalize spaces and tabs
     text = re.sub(r"[ \t]+", " ", text)
 
-    # Remove spaces at the beginning and end of lines
-    text = re.sub(r" *\n *", "\n", text)
-
-    # Reduce excessive blank lines while preserving paragraphs
+    # Remove excessive line breaks
     text = re.sub(r"\n{3,}", "\n\n", text)
 
-    # Remove leading and trailing whitespace
-    text = text.strip()
-
-    return text
+    return text.strip()
 
 
-def clean_pages(pages):
-    """
-    Clean extracted page text without losing page numbers.
-    """
+def clean_pages(pages: list[dict]) -> list[dict]:
 
     cleaned_pages = []
 
     for page in pages:
+        cleaned = page.copy()
 
-        cleaned_pages.append({
-            "page_number": page["page_number"],
-            "text": clean_text(page["text"])
-        })
+        cleaned["text"] = clean_text(page["text"])
+
+        if cleaned["text"]:
+            cleaned_pages.append(cleaned)
 
     return cleaned_pages

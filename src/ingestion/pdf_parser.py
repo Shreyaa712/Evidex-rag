@@ -1,51 +1,75 @@
 
+import hashlib
+import logging
 from pathlib import Path
+
 import pymupdf
 
+logger = logging.getLogger(__name__)
 
-def extract_pdf(pdf_path):
-    """
-    Extract text from a PDF page by page.
 
-    Args:
-        pdf_path: Path to the research paper PDF.
+def extract_pdfs(folder_path: str) -> list[dict]:
 
-    Returns:
-        A dictionary containing the PDF name,
-        page count, and extracted page-level text.
-    """
+    pdf_files = sorted(Path(folder_path).glob("*.pdf"))
 
-    pdf_path = Path(pdf_path)
+    if not pdf_files:
+        raise FileNotFoundError("No PDF files found.")
 
-    # Check whether the PDF exists
-    if not pdf_path.exists():
-        raise FileNotFoundError(f"PDF not found: {pdf_path}")
+    pages = []
+    seen_hashes = set()
 
-    if not pdf_path.is_file():
-        raise ValueError(f"Not a valid file: {pdf_path}")
+    for pdf_path in pdf_files:
+        try:
+            file_hash = hashlib.sha256(
+                pdf_path.read_bytes()
+            ).hexdigest()
 
-    if pdf_path.suffix.lower() != ".pdf":
-        raise ValueError("The supplied file must be a PDF.")
+            if file_hash in seen_hashes:
+                logger.warning("Duplicate PDF skipped: %s", pdf_path.name)
+                continue
 
-    # Open the PDF and extract page-level text
-    with pymupdf.open(pdf_path) as document:
+            seen_hashes.add(file_hash)
 
-        pages = []
+            with pymupdf.open(pdf_path) as document:
 
-        for page_number, page in enumerate(document, start=1):
+                if document.is_encrypted:
+                    logger.warning("Encrypted PDF skipped: %s", pdf_path.name)
+                    continue
 
-            page_text = page.get_text("text")
+                for page_number, page in enumerate(document, start=1):
 
-            pages.append({
-                "page_number": page_number,
-                "text": page_text
-            })
+                    text = page.get_text("text")
 
-        # Return structured extraction results
-        extracted_data = {
-            "file_name": pdf_path.name,
-            "page_count": len(document),
-            "pages": pages
-        }
+                    if not text.strip():
+                        logger.warning(
+                            "No extractable text: %s, page %d",
+                            pdf_path.name, page_number
+                        )
+                        continue
 
-    return extracted_data
+                    pages.append({
+                        "paper_id": file_hash[:12],
+                        "paper_name": pdf_path.name,
+                        "page_number": page_number,
+                        "text": text
+                    })
+
+            logger.info("Processed PDF: %s", pdf_path.name)
+
+        except Exception:
+            logger.exception("Failed to process: %s", pdf_path.name)
+
+    return pages
+
+
+def main() -> None:
+    raw_folder = Path(__file__).resolve().parents[2] / "data" / "raw"
+    pages = extract_pdfs(str(raw_folder))
+
+    paper_count = len({page["paper_id"] for page in pages})
+    print(f"Extracted {len(pages)} text-bearing pages from {paper_count} PDFs.")
+
+
+if __name__ == "__main__":
+    main()
+
