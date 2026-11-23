@@ -1,4 +1,22 @@
 from src.retrieval.evaluate import precision_recall_and_reciprocal_rank
+from src.retrieval.rerank import rerank_hits
+
+
+class FakeReranker:
+    def predict(self, pairs, convert_to_numpy=True):
+        return [float(text.count("relevant")) for _, text in pairs]
+
+
+def test_rerank_hits_orders_by_cross_encoder_score():
+    hits = [
+        {"chunk_id": "a", "text": "low relevance"},
+        {"chunk_id": "b", "text": "relevant relevant"},
+    ]
+
+    reranked = rerank_hits("question", hits, k=1, reranker=FakeReranker())
+
+    assert reranked[0]["chunk_id"] == "b"
+    assert reranked[0]["rerank_score"] == 2.0
 
 
 def test_precision_recall_and_mrr_for_first_result():

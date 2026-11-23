@@ -11,6 +11,7 @@ import sys
 from src.config import EVAL_DIR, PROCESSED_DIR
 from src.retrieval.bm25 import bm25_search
 from src.retrieval.hybrid import hybrid_search
+from src.retrieval.rerank import reranked_hybrid_search
 from src.retrieval.vector_search import search as dense_search
 
 QUERIES_PATH = EVAL_DIR / "mini_queries.json"
@@ -19,6 +20,7 @@ METHODS = {
     "dense": dense_search,
     "bm25": bm25_search,
     "hybrid": hybrid_search,
+    "rerank": reranked_hybrid_search,
 }
 
 
