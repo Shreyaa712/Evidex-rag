@@ -1,32 +1,25 @@
 
+import re
+
+
 def create_chunks(
     pages: list[dict],
-    chunk_size: int = 1200,
-    overlap: int = 200
+    chunk_size: int = 150,
+    overlap: int = 30,
 ) -> list[dict]:
-
     if chunk_size <= 0 or not 0 <= overlap < chunk_size:
         raise ValueError("Invalid chunk size or overlap.")
 
     chunks = []
 
     for page in pages:
-        text = page["text"]
+        words = re.findall(r"\S+", page["text"])
         start = 0
         chunk_index = 0
 
-        while start < len(text):
-
-            end = min(start + chunk_size, len(text))
-
-            # Avoid cutting words unnecessarily
-            if end < len(text):
-                boundary = text.rfind(" ", start, end)
-
-                if boundary > start:
-                    end = boundary
-
-            chunk_text = text[start:end].strip()
+        while start < len(words):
+            end = min(start + chunk_size, len(words))
+            chunk_text = " ".join(words[start:end]).strip()
 
             if chunk_text:
                 chunks.append({
@@ -38,12 +31,12 @@ def create_chunks(
                     "paper_name": page["paper_name"],
                     "page_number": page["page_number"],
                     "chunk_index": chunk_index,
-                    "chunk_text": chunk_text
+                    "chunk_text": chunk_text,
+                    "section_heading": None,
                 })
-
                 chunk_index += 1
 
-            if end >= len(text):
+            if end >= len(words):
                 break
 
             start = end - overlap

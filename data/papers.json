@@ -1,0 +1,67 @@
+[
+  {
+    "paper_id": "23e3249e9a1e",
+    "paper_name": "01_rag_lewis_2020.pdf",
+    "title": null,
+    "author": null,
+    "subject": null,
+    "keywords": null,
+    "creator": "LaTeX with hyperref",
+    "producer": "pdfTeX-1.40.21",
+    "creation_date": "D:20210413004838Z",
+    "modification_date": "D:20210413004838Z",
+    "page_count": 19
+  },
+  {
+    "paper_id": "3e67fc1a9977",
+    "paper_name": "02_dense_retrieval_karpukhin_2020.pdf",
+    "title": null,
+    "author": null,
+    "subject": null,
+    "keywords": null,
+    "creator": "LaTeX with hyperref package",
+    "producer": "pdfTeX-1.40.17",
+    "creation_date": "D:20201002001208Z",
+    "modification_date": "D:20201002001208Z",
+    "page_count": 13
+  },
+  {
+    "paper_id": "1925755aeb62",
+    "paper_name": "03_beir_thakur_2021.pdf",
+    "title": null,
+    "author": null,
+    "subject": null,
+    "keywords": null,
+    "creator": "LaTeX with hyperref",
+    "producer": "pdfTeX-1.40.21",
+    "creation_date": "D:20211022020128Z",
+    "modification_date": "D:20211022020128Z",
+    "page_count": 24
+  },
+  {
+    "paper_id": "653b29619eae",
+    "paper_name": "04_lost_in_the_middle_liu_2023.pdf",
+    "title": null,
+    "author": null,
+    "subject": null,
+    "keywords": null,
+    "creator": "LaTeX with hyperref",
+    "producer": "pdfTeX-1.40.25",
+    "creation_date": "D:20231122010940Z",
+    "modification_date": "D:20231122010940Z",
+    "page_count": 18
+  },
+  {
+    "paper_id": "6c24762a3f27",
+    "paper_name": "05_ragas_es_2023.pdf",
+    "title": null,
+    "author": null,
+    "subject": null,
+    "keywords": null,
+    "creator": "LaTeX with hyperref",
+    "producer": "pdfTeX-1.40.25",
+    "creation_date": "D:20250429011828Z",
+    "modification_date": "D:20250429011828Z",
+    "page_count": 8
+  }
+]

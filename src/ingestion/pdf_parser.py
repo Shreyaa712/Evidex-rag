@@ -1,13 +1,20 @@
 
+import json
 import hashlib
 import logging
 from pathlib import Path
 
 import pymupdf
 
-from chunker import create_chunks
-from cleaner import clean_pages
-from validate import validate_chunks
+from src.config import (
+    CHUNK_OVERLAP_WORDS,
+    CHUNK_SIZE_WORDS,
+    PAPERS_META_PATH,
+    PROCESSED_DIR,
+)
+from src.ingestion.chunker import create_chunks
+from src.ingestion.cleaner import clean_pages
+from src.ingestion.validate import validate_chunks
 
 logger = logging.getLogger(__name__)
 
@@ -121,14 +128,49 @@ def main() -> None:
     cleaned_pages = clean_pages(raw_pages)
 
     # 3. Split cleaned pages into overlapping chunks
-    chunks = create_chunks(cleaned_pages)
+    chunks = create_chunks(
+        cleaned_pages,
+        chunk_size=CHUNK_SIZE_WORDS,
+        overlap=CHUNK_OVERLAP_WORDS,
+    )
 
     # 4. Validate chunks against the Evidex-RAG contract
     validate_chunks(chunks)
 
+    PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+
+    chunks_by_paper: dict[str, list[dict]] = {}
+    for chunk in chunks:
+        chunks_by_paper.setdefault(chunk["paper_id"], []).append(chunk)
+
+    metadata_by_paper = {
+        item["paper_id"]: item
+        for item in metadata_list
+    }
+
+    for paper_id, paper_chunks in chunks_by_paper.items():
+        metadata = metadata_by_paper[paper_id]
+        record = {
+            "paper_id": paper_id,
+            "paper_name": metadata["paper_name"],
+            "metadata": metadata,
+            "chunks": paper_chunks,
+        }
+        output_path = PROCESSED_DIR / f"{paper_id}.json"
+        output_path.write_text(
+            json.dumps(record, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+
+    PAPERS_META_PATH.write_text(
+        json.dumps(metadata_list, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
     print(
         f"Success: Processed {len(metadata_list)} PDFs -> "
-        f"{len(cleaned_pages)} clean pages -> {len(chunks)} valid chunks."
+        f"{len(cleaned_pages)} clean pages -> {len(chunks)} valid chunks.\n"
+        f"Wrote records to {PROCESSED_DIR}"
     )
 
 
