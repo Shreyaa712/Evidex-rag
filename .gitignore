@@ -22,3 +22,6 @@ Thumbs.db
 # Research paper PDFs and generated data
 data/raw/*.pdf
 data/processed/
+
+# ChromaDB database
+chroma_db/
