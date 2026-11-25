@@ -1,4 +1,9 @@
-from src.retrieval.evaluate import precision_recall_and_reciprocal_rank
+import json
+
+from src.retrieval.evaluate import (
+    load_relevant_chunks,
+    precision_recall_and_reciprocal_rank,
+)
 from src.retrieval.rerank import rerank_hits
 
 
@@ -57,3 +62,36 @@ def test_no_relevant_result_has_zero_mrr():
     assert precision == 0.0
     assert recall == 0.0
     assert reciprocal_rank == 0.0
+
+def test_load_relevant_chunks_returns_only_expected_pages(tmp_path, monkeypatch):
+    paper1 = {
+        "paper_id": "paper-1",
+        "chunks": [
+            {"chunk_id": "chunk-1", "page_number": 1},
+            {"chunk_id": "chunk-2", "page_number": 2},
+            {"chunk_id": "chunk-3", "page_number": 3},
+            {"chunk_id": "chunk-4", "page_number": 4},
+        ],
+    }
+
+    paper2 = {
+        "paper_id": "paper-2",
+        "chunks": [
+            {"chunk_id": "chunk-5", "page_number": 2},
+        ],
+    }
+
+    (tmp_path / "paper1.json").write_text(
+        json.dumps(paper1), encoding="utf-8"
+    )
+    (tmp_path / "paper2.json").write_text(
+        json.dumps(paper2), encoding="utf-8"
+    )
+
+    monkeypatch.setattr(
+        "src.retrieval.evaluate.PROCESSED_DIR", tmp_path
+    )
+
+    relevant_ids = load_relevant_chunks("paper-1", [2, 3])
+
+    assert relevant_ids == {"chunk-2", "chunk-3"}
