@@ -22,32 +22,137 @@
   {
     "question": "How does BEIR evaluate zero-shot information retrieval?",
     "expected_paper_id": "1925755aeb62",
-    "expected_pages": [1, 2, 3, 5, 8, 9]
+    "expected_pages": [1, 2, 3, 5]
   },
   {
     "question": "What happens when relevant documents are in the middle of a context?",
     "expected_paper_id": "653b29619eae",
-    "expected_pages":  [1, 2, 3, 4, 5, 6, 7]
+    "expected_pages":  [1,2]
   },
   {
     "question": "How does document position affect language model performance?",
     "expected_paper_id": "653b29619eae",
-    "expected_pages": [1, 2 , 3, 11]
+    "expected_pages": [1, 2 , 11]
 
   },
   {
     "question": "How is RAGAS used to evaluate retrieval augmented generation?",
     "expected_paper_id": "6c24762a3f27",
-    "expected_pages": [1, 2, 3, 5]
+    "expected_pages": [1, 2, 3]
   },
+
   {
-    "question": "What metrics does RAGAS use for faithfulness and answer relevance?",
-    "expected_paper_id": "6c24762a3f27",
-    "expected_pages": [3, 4, 5]
+  "question": "How is context relevance measured in the RAGAS framework?",
+  "expected_paper_id": "6c24762a3f27",
+  "expected_pages": [3, 4]
   },
   {
     "question": "How do neural retrievers differ from sparse retrieval methods?",
+    "expected_paper_id": "1925755aeb62",
+    "expected_pages": [1, 3]
+  },
+ {
+    "question": "What roles do the retriever and generator perform in the RAG architecture?",
+    "expected_paper_id": "23e3249e9a1e",
+    "expected_pages": [2, 3]
+  },
+  {
+    "question": "How does RAG-Sequence differ from RAG-Token?",
+    "expected_paper_id": "23e3249e9a1e",
+    "expected_pages": [3]
+  },
+  {
+    "question": "Which components are updated during RAG training, and which remain fixed?",
+    "expected_paper_id": "23e3249e9a1e",
+    "expected_pages": [4]
+  },
+  {
+    "question": "Which datasets are used to evaluate RAG on open-domain question answering?",
+    "expected_paper_id": "23e3249e9a1e",
+    "expected_pages": [4]
+  },
+  {
+    "question": "What do the retrieval ablation experiments reveal about learned retrieval compared with BM25?",
+    "expected_paper_id": "23e3249e9a1e",
+    "expected_pages": [7]
+  },
+  {
+    "question": "What types of negative passages are considered when training DPR?",
     "expected_paper_id": "3e67fc1a9977",
-    "expected_pages": [1, 8, 9]
+    "expected_pages": [3]
+  },
+  {
+    "question": "How does DPR use in-batch negatives during training?",
+    "expected_paper_id": "3e67fc1a9977",
+    "expected_pages": [3, 4]
+  },
+  {
+    "question": "Which datasets are used in the DPR retrieval experiments?",
+    "expected_paper_id": "3e67fc1a9977",
+    "expected_pages": [4, 5]
+  },
+  {
+    "question": "How does the neural reader use retrieved passages to select an answer?",
+    "expected_paper_id": "3e67fc1a9977",
+    "expected_pages": [7]
+  },
+  {
+    "question": "Which nine retrieval tasks are represented in the BEIR benchmark?",
+    "expected_paper_id": "1925755aeb62",
+    "expected_pages": [2]
+  },
+  {
+    "question": "What factors guide the selection of datasets for the BEIR benchmark?",
+    "expected_paper_id": "1925755aeb62",
+    "expected_pages": [3, 4]
+  },
+  {
+    "question": "What do the BEIR results reveal about the generalization of dense retrieval models?",
+    "expected_paper_id": "1925755aeb62",
+    "expected_pages": [7, 9]
+  },
+  {
+    "question": "How is the multi-document question answering experiment constructed?",
+    "expected_paper_id": "653b29619eae",
+    "expected_pages": [3]
+  },
+ 
+  {
+  "question": "What does the open-domain QA experiment reveal about the relationship between retriever recall and reader performance?",
+  "expected_paper_id": "653b29619eae",
+  "expected_pages": [9, 10]
+  },
+
+  {
+    "question": "How is the synthetic key-value retrieval task used to study long-context retrieval?",
+    "expected_paper_id": "653b29619eae",
+    "expected_pages": [6, 7]
+  },
+  {
+    "question": "Why does adding more retrieved documents not always improve language model performance?",
+    "expected_paper_id": "653b29619eae",
+    "expected_pages": [9, 10]
+  },
+  {
+    "question": "What three quality dimensions does RAGAS evaluate?",
+    "expected_paper_id": "6c24762a3f27",
+    "expected_pages": [3]
+  },
+  {
+    "question": "How does the RAGAS faithfulness metric identify unsupported claims?",
+    "expected_paper_id": "6c24762a3f27",
+    "expected_pages": [3]
+  },
+  {
+    "question": "What does answer relevance measure in the RAGAS framework?",
+    "expected_paper_id": "6c24762a3f27",
+    "expected_pages": [3]
+  },
+  {
+    "question": "How closely do RAGAS evaluation metrics agree with human judgments in the WikiEval experiments?",
+    "expected_paper_id": "6c24762a3f27",
+    "expected_pages": [5]
   }
 ]
+
+
