@@ -8,6 +8,8 @@ Usage:
 import json
 import sys
 
+from torch import chunk
+
 from src.config import EVAL_DIR, PROCESSED_DIR
 from src.retrieval.bm25 import bm25_search
 from src.retrieval.hybrid import hybrid_search
@@ -24,19 +26,21 @@ METHODS = {
 }
 
 
-def load_relevant_chunks():
-    """Treat every chunk from an expected paper as relevant for that paper."""
-    relevant_chunks = {}
-
+def load_relevant_chunks(paper_id, expected_pages):
+    """Return relevant chunk IDs from the expected pages of a paper."""
+  
     for path in sorted(PROCESSED_DIR.glob("*.json")):
         with open(path, encoding="utf-8") as file:
             record = json.load(file)
 
-        relevant_chunks[record["paper_id"]] = {
-            chunk["chunk_id"] for chunk in record["chunks"]
-        }
+        if record["paper_id"] == paper_id:
+            return {
+                chunk["chunk_id"]
+                for chunk in record["chunks"]
+                if chunk["page_number"] in expected_pages
+            }
 
-    return relevant_chunks
+    return set()  # No relevant chunks found for the paper_id
 
 
 def precision_recall_and_reciprocal_rank(results, relevant_ids, k):
@@ -67,7 +71,6 @@ def evaluate(k=5, search_fn=dense_search, queries_path=QUERIES_PATH):
     with open(queries_path, encoding="utf-8") as file:
         queries = json.load(file)
 
-    relevant_chunks = load_relevant_chunks()
     precision_values = []
     recall_values = []
     reciprocal_ranks = []
@@ -76,7 +79,8 @@ def evaluate(k=5, search_fn=dense_search, queries_path=QUERIES_PATH):
 
     for query in queries:
         paper_id = query["expected_paper_id"]
-        relevant_ids = relevant_chunks.get(paper_id, set())
+        expected_pages = query.get("expected_pages", [])
+        relevant_ids = load_relevant_chunks(paper_id, expected_pages)
         results = search_fn(query["question"], k=k)
 
         precision, recall, reciprocal_rank = (

@@ -1,42 +1,53 @@
 [
   {
     "question": "How does retrieval-augmented generation use retrieved documents?",
-    "expected_paper_id": "23e3249e9a1e"
+    "expected_paper_id": "23e3249e9a1e",
+    "expected_pages": [2, 3]
   },
   {
     "question": "What is Dense Passage Retrieval?",
-    "expected_paper_id": "3e67fc1a9977"
+    "expected_paper_id": "3e67fc1a9977",
+    "expected_pages": [1, 2]
   },
   {
     "question": "How does DPR encode questions and passages?",
-    "expected_paper_id": "3e67fc1a9977"
+    "expected_paper_id": "3e67fc1a9977",
+    "expected_pages": [2,3]
   },
   {
     "question": "What datasets are included in the BEIR benchmark?",
-    "expected_paper_id": "1925755aeb62"
+    "expected_paper_id": "1925755aeb62",
+    "expected_pages": [ 2,3,4 ]
   },
   {
     "question": "How does BEIR evaluate zero-shot information retrieval?",
-    "expected_paper_id": "1925755aeb62"
+    "expected_paper_id": "1925755aeb62",
+    "expected_pages": [1, 2, 3, 5, 8, 9]
   },
   {
     "question": "What happens when relevant documents are in the middle of a context?",
-    "expected_paper_id": "653b29619eae"
+    "expected_paper_id": "653b29619eae",
+    "expected_pages":  [1, 2, 3, 4, 5, 6, 7]
   },
   {
     "question": "How does document position affect language model performance?",
-    "expected_paper_id": "653b29619eae"
+    "expected_paper_id": "653b29619eae",
+    "expected_pages": [1, 2 , 3, 11]
+
   },
   {
     "question": "How is RAGAS used to evaluate retrieval augmented generation?",
-    "expected_paper_id": "6c24762a3f27"
+    "expected_paper_id": "6c24762a3f27",
+    "expected_pages": [1, 2, 3, 5]
   },
   {
     "question": "What metrics does RAGAS use for faithfulness and answer relevance?",
-    "expected_paper_id": "6c24762a3f27"
+    "expected_paper_id": "6c24762a3f27",
+    "expected_pages": [3, 4, 5]
   },
   {
     "question": "How do neural retrievers differ from sparse retrieval methods?",
-    "expected_paper_id": "3e67fc1a9977"
+    "expected_paper_id": "3e67fc1a9977",
+    "expected_pages": [1, 8, 9]
   }
 ]
