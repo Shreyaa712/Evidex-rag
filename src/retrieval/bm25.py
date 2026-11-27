@@ -73,6 +73,9 @@ class BM25Index:
 
     def search(self, query, k=5, paper_id=None):
         """Top-k chunks, best first, in the same format as vector search."""
+        if not isinstance(k, int) or isinstance(k, bool) or k < 1:
+            raise ValueError("k must be a positive integer")
+
         scores = self.scores(query)
         ranked = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
 

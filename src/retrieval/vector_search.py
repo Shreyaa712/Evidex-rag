@@ -7,7 +7,8 @@ def search(query, k=5, paper_id=None):
     Return the k chunks most similar to the query.
     paper_id optionally restricts the search to one paper.
     """
-
+    if not isinstance(k, int) or isinstance(k, bool) or k < 1:
+        raise ValueError("k must be a positive integer")
     collection = get_collection()
     total = collection.count()
 
