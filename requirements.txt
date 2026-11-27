@@ -3,3 +3,7 @@ pymupdf
 sentence-transformers
 chromadb
 pytest
+groq
+python-dotenvfastapi
+uvicorn [0.54.0]
+
