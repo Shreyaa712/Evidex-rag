@@ -111,3 +111,14 @@ def test_chunk_does_not_mix_content_and_references():
     assert len(chunks) == 2
     assert chunks[0]["section_heading"] is None
     assert chunks[1]["section_heading"] == "References"
+
+def test_section_change_near_chunk_start_does_not_loop_forever():
+    # The heading comes only 10 words after the chunk starts, i.e. closer than
+    # the overlap (30). This used to make start stop moving: an infinite loop.
+    text = " ".join(f"w{i}" for i in range(10))
+    text += "\nReferences\n" + " ".join(f"r{i}" for i in range(60))
+    pages = [{"paper_id": "P", "paper_name": "p.pdf", "page_number": 1, "text": text}]
+
+    chunks = create_chunks(pages, chunk_size=150, overlap=30, min_chunk_words=5)
+
+    assert [c["section_heading"] for c in chunks] == [None, "References"]

@@ -79,11 +79,13 @@ def create_chunks(
         while start < len(words):
             end = min(start + chunk_size, len(words))
             section = word_sections[start]
+            cut_at_section = False
 
             # Do not allow a chunk to cross into another section.
             for position in range(start + 1, end):
                 if word_sections[position] != section:
                     end = position
+                    cut_at_section = True
                     break
 
             # Merge a small final remainder only if it belongs
@@ -124,8 +126,11 @@ def create_chunks(
 
             if end >= len(words):
                 break
-
-            start = end - overlap
+            # After a cut at a section boundary, start fresh in the new section.
+            # Overlapping here would pull the old section's words back in and the
+            # same cut would repeat forever (infinite loop). max() guarantees
+            # that start always moves forward.
+            start = end if cut_at_section else max(end - overlap, start + 1)
 
     return chunks
 
