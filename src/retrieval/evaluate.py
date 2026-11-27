@@ -36,22 +36,33 @@ def _load_records():
         with open(path, encoding="utf-8") as file:
             record = json.load(file)
         records[record["paper_id"]] = record
+
+    if not records:
+        raise RuntimeError(
+            f"No processed papers found in {PROCESSED_DIR}. "
+            "Run: python -m src.ingestion.pdf_parser"
+        )
     return records
 
 def load_relevant_chunks(paper_id, expected_pages):
     """Return relevant chunk IDs from the expected pages of a paper."""
     record = _load_records().get(paper_id)
     if record is None:
-        return set()  # No relevant chunks found for the paper_id
-           
-    return {
-            c["chunk_id"]
-             for c in record["chunks"]
-            if c["page_number"] in expected_pages
-            and c.get("section_heading") not in SKIP_SECTIONS  # never indexed
+        raise KeyError(f"paper_id {paper_id} is not in the processed data")
+
+    relevant = {
+        c["chunk_id"]
+        for c in record["chunks"]
+        if c["page_number"] in expected_pages
+        and c.get("section_heading") not in SKIP_SECTIONS
     }
 
-  
+    if not relevant:
+        raise ValueError(
+            f"No chunks match paper {paper_id}, pages {expected_pages}. "
+            "Check the page numbers in mini_queries.json."
+        )
+    return relevant
 
 
 def precision_recall_and_reciprocal_rank(results, relevant_ids, k):
@@ -63,11 +74,10 @@ def precision_recall_and_reciprocal_rank(results, relevant_ids, k):
     ]
 
     precision = len(retrieved_relevant) / k if k else 0.0
-    recall = (
-        len(retrieved_relevant) / len(relevant_ids)
-        if relevant_ids
-        else 0.0
-    )
+    # Capped recall (as in BEIR): a perfect top-k scores 1.0 even when
+    # a page holds more relevant chunks than k.
+    denominator = min(k, len(relevant_ids))
+    recall = len(retrieved_relevant) / denominator if denominator else 0.0
 
     reciprocal_rank = 0.0
     for rank, chunk_id in enumerate(retrieved_ids, start=1):

@@ -1,4 +1,5 @@
 import json
+import pytest
 
 from src.retrieval.evaluate import (
      _load_records,
@@ -116,3 +117,70 @@ def test_hit_is_zero_when_no_relevant_chunk_is_in_top_k():
     )
 
     assert reciprocal_rank == 0.0
+
+
+def test_load_records_raises_when_processed_folder_is_empty(
+    tmp_path, monkeypatch
+):
+    monkeypatch.setattr(
+        "src.retrieval.evaluate.PROCESSED_DIR", tmp_path
+    )
+    _load_records.cache_clear()
+
+    with pytest.raises(RuntimeError, match="No processed papers found"):
+        _load_records()
+
+
+def test_load_relevant_chunks_raises_for_unknown_paper(
+    tmp_path, monkeypatch
+):
+    paper = {
+        "paper_id": "paper-1",
+        "chunks": [
+            {"chunk_id": "chunk-1", "page_number": 1}
+        ],
+    }
+
+    (tmp_path / "paper1.json").write_text(
+        json.dumps(paper), encoding="utf-8"
+    )
+
+    monkeypatch.setattr(
+        "src.retrieval.evaluate.PROCESSED_DIR", tmp_path
+    )
+    _load_records.cache_clear()
+
+    with pytest.raises(KeyError, match="paper-2"):
+        load_relevant_chunks("paper-2", [1])
+
+
+def test_load_relevant_chunks_raises_when_no_chunks_match_pages(
+    tmp_path, monkeypatch
+):
+    paper = {
+        "paper_id": "paper-1",
+        "chunks": [
+            {"chunk_id": "chunk-1", "page_number": 1}
+        ],
+    }
+
+    (tmp_path / "paper1.json").write_text(
+        json.dumps(paper), encoding="utf-8"
+    )
+
+    monkeypatch.setattr(
+        "src.retrieval.evaluate.PROCESSED_DIR", tmp_path
+    )
+    _load_records.cache_clear()
+
+    with pytest.raises(ValueError, match="No chunks match paper"):
+        load_relevant_chunks("paper-1", [2])
+
+def test_capped_recall_is_one_when_top_k_is_all_relevant():
+    results = [{"chunk_id": "a"}, {"chunk_id": "b"}, {"chunk_id": "c"}]
+    relevant = {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j"}  # 10 relevant
+
+    precision, recall, rr = precision_recall_and_reciprocal_rank(results, relevant, k=3)
+
+    assert precision == 1.0
+    assert recall == 1.0
