@@ -1,6 +1,7 @@
 import json
 
 from src.retrieval.evaluate import (
+     _load_records,
     load_relevant_chunks,
     precision_recall_and_reciprocal_rank,
 )
@@ -91,7 +92,27 @@ def test_load_relevant_chunks_returns_only_expected_pages(tmp_path, monkeypatch)
     monkeypatch.setattr(
         "src.retrieval.evaluate.PROCESSED_DIR", tmp_path
     )
-
+    _load_records.cache_clear()  # the loader caches; drop results from other tests
     relevant_ids = load_relevant_chunks("paper-1", [2, 3])
 
     assert relevant_ids == {"chunk-2", "chunk-3"}
+
+def test_hit_is_one_when_any_relevant_chunk_is_in_top_k():
+    results = [{"chunk_id": "x"}, {"chunk_id": "a"}, {"chunk_id": "y"}]
+
+    _, _, reciprocal_rank = precision_recall_and_reciprocal_rank(
+        results, {"a", "b", "c", "d"}, k=3
+    )
+
+    assert reciprocal_rank == 0.5          # first relevant chunk is at rank 2
+    assert (1.0 if reciprocal_rank > 0 else 0.0) == 1.0   # so Hit@3 = 1
+
+
+def test_hit_is_zero_when_no_relevant_chunk_is_in_top_k():
+    results = [{"chunk_id": "x"}, {"chunk_id": "y"}]
+
+    _, _, reciprocal_rank = precision_recall_and_reciprocal_rank(
+        results, {"a"}, k=2
+    )
+
+    assert reciprocal_rank == 0.0

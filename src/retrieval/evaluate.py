@@ -7,11 +7,12 @@ Usage:
 """
 import json
 import sys
+from functools import lru_cache
 
-from torch import chunk
 
 from src.config import EVAL_DIR, PROCESSED_DIR
 from src.retrieval.bm25 import bm25_search
+from src.retrieval.build_index import SKIP_SECTIONS
 from src.retrieval.hybrid import hybrid_search
 from src.retrieval.rerank import reranked_hybrid_search
 from src.retrieval.vector_search import search as dense_search
@@ -25,22 +26,32 @@ METHODS = {
     "rerank": reranked_hybrid_search,
 }
 
+@lru_cache(maxsize=None)
+def _load_records():
+    """Read every processed paper file once; return {paper_id: record}."""
+    records = {}
+    for path in sorted(PROCESSED_DIR.glob("*.json")):
+        if path.name.startswith("_"):  # log / flat chunk list, not a paper
+            continue
+        with open(path, encoding="utf-8") as file:
+            record = json.load(file)
+        records[record["paper_id"]] = record
+    return records
 
 def load_relevant_chunks(paper_id, expected_pages):
     """Return relevant chunk IDs from the expected pages of a paper."""
+    record = _load_records().get(paper_id)
+    if record is None:
+        return set()  # No relevant chunks found for the paper_id
+           
+    return {
+            c["chunk_id"]
+             for c in record["chunks"]
+            if c["page_number"] in expected_pages
+            and c.get("section_heading") not in SKIP_SECTIONS  # never indexed
+    }
+
   
-    for path in sorted(PROCESSED_DIR.glob("*.json")):
-        with open(path, encoding="utf-8") as file:
-            record = json.load(file)
-
-        if record["paper_id"] == paper_id:
-            return {
-                chunk["chunk_id"]
-                for chunk in record["chunks"]
-                if chunk["page_number"] in expected_pages
-            }
-
-    return set()  # No relevant chunks found for the paper_id
 
 
 def precision_recall_and_reciprocal_rank(results, relevant_ids, k):
@@ -74,6 +85,7 @@ def evaluate(k=5, search_fn=dense_search, queries_path=QUERIES_PATH):
     precision_values = []
     recall_values = []
     reciprocal_ranks = []
+    hit_values = []
 
     print(f"\nK = {k}")
 
@@ -89,6 +101,7 @@ def evaluate(k=5, search_fn=dense_search, queries_path=QUERIES_PATH):
         precision_values.append(precision)
         recall_values.append(recall)
         reciprocal_ranks.append(reciprocal_rank)
+        hit_values.append(1.0 if reciprocal_rank > 0 else 0.0)
 
         rr_label = f"{reciprocal_rank:.3f}" if reciprocal_rank else "-"
         print(
@@ -100,12 +113,14 @@ def evaluate(k=5, search_fn=dense_search, queries_path=QUERIES_PATH):
     metrics = {
         f"precision@{k}": sum(precision_values) / count if count else 0.0,
         f"recall@{k}": sum(recall_values) / count if count else 0.0,
+        f"hit@{k}": sum(hit_values) / count if count else 0.0,
         "mrr": sum(reciprocal_ranks) / count if count else 0.0,
     }
 
     print(
         f"Average: P@{k}={metrics[f'precision@{k}']: .3f}, "
         f"R@{k}={metrics[f'recall@{k}']: .3f}, "
+        f"Hit@{k}={metrics[f'hit@{k}']: .3f}, "
         f"MRR={metrics['mrr']: .3f}"
     )
 
@@ -134,6 +149,7 @@ def main():
         print(
             f"{name}: P@{k}={metrics[f'precision@{k}']:.3f}, "
             f"R@{k}={metrics[f'recall@{k}']:.3f}, "
+            f"Hit@{k}={metrics[f'hit@{k}']:.3f}, "
             f"MRR={metrics['mrr']:.3f}"
         )
 
