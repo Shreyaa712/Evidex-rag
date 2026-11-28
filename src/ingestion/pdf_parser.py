@@ -109,6 +109,115 @@ def extract_pdfs(folder_path: str) -> tuple[list[dict], list[dict]]:
     return pages, documents_metadata
 
 
+def process_single_pdf(pdf_path: Path) -> dict:
+    """Process one PDF and save its chunks and metadata."""
+
+    pdf_path = Path(pdf_path)
+
+    if not pdf_path.is_file() or pdf_path.suffix.lower() != ".pdf":
+        raise ValueError("A valid PDF file is required.")
+
+    file_hash = calculate_file_hash(pdf_path)
+    paper_id = file_hash[:12]
+
+    # Check whether this paper has already been processed.
+    if PAPERS_META_PATH.exists():
+        existing_metadata = json.loads(
+            PAPERS_META_PATH.read_text(encoding="utf-8")
+        )
+
+        if any(item["paper_id"] == paper_id for item in existing_metadata):
+            raise ValueError("This paper has already been uploaded.")
+
+    # 1. Extract pages and metadata.
+    with pymupdf.open(pdf_path) as document:
+        if document.is_encrypted:
+            raise ValueError("Encrypted PDFs are not supported.")
+
+        metadata = document.metadata or {}
+
+        document_metadata = {
+            "paper_id": paper_id,
+            "paper_name": pdf_path.name,
+            "title": metadata.get("title") or None,
+            "author": metadata.get("author") or None,
+            "subject": metadata.get("subject") or None,
+            "keywords": metadata.get("keywords") or None,
+            "creator": metadata.get("creator") or None,
+            "producer": metadata.get("producer") or None,
+            "creation_date": metadata.get("creationDate") or None,
+            "modification_date": metadata.get("modDate") or None,
+            "page_count": len(document),
+        }
+
+        raw_pages = []
+
+        for page_number, page in enumerate(document, start=1):
+            text = page.get_text("text")
+
+            if text.strip():
+                raw_pages.append({
+                    "paper_id": paper_id,
+                    "paper_name": pdf_path.name,
+                    "page_number": page_number,
+                    "text": text,
+                })
+
+    if not raw_pages:
+        raise ValueError("No extractable text found in this PDF.")
+
+    # 2. Clean extracted pages.
+    cleaned_pages = clean_pages(raw_pages)
+
+    # 3. Create chunks using the existing chunker.
+    chunks = create_chunks(
+        cleaned_pages,
+        chunk_size=CHUNK_SIZE_WORDS,
+        overlap=CHUNK_OVERLAP_WORDS,
+    )
+
+    # 4. Validate chunks.
+    validate_chunks(chunks)
+
+    # 5. Save this paper's processed record.
+    PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+
+    record = {
+        "paper_id": paper_id,
+        "paper_name": pdf_path.name,
+        "metadata": document_metadata,
+        "chunks": chunks,
+    }
+
+    output_path = PROCESSED_DIR / f"{paper_id}.json"
+    output_path.write_text(
+        json.dumps(record, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+    # 6. Add metadata without overwriting existing papers.
+    PAPERS_META_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+    existing_metadata = []
+    if PAPERS_META_PATH.exists():
+        existing_metadata = json.loads(
+            PAPERS_META_PATH.read_text(encoding="utf-8")
+        )
+
+    existing_metadata.append(document_metadata)
+
+    PAPERS_META_PATH.write_text(
+        json.dumps(existing_metadata, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+    return {
+        "paper_id": paper_id,
+        "paper_name": pdf_path.name,
+        "page_count": document_metadata["page_count"],
+        "chunk_count": len(chunks),
+    }
+
 def main() -> None:
     logging.basicConfig(
         level=logging.INFO,

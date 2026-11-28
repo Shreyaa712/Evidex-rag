@@ -6,4 +6,4 @@ pytest
 groq
 python-dotenvfastapi
 uvicorn [0.54.0]
-
+python-multipart
